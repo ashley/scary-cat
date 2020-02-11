@@ -16,8 +16,11 @@ Options:
 
 import sys
 import docopt
-from search import get_host
 from prettycli import red, green, blue
+import click
+
+from validator import validate_format
+from search import get_host
 
 def main():
     args = docopt.docopt(__doc__, version="1.0")
@@ -46,7 +49,32 @@ def config_cmd(args):
 """ Must return boolean, str """
 def dummy_validate(params):
     print('validating.....')
-    return True, None
+    res = validate_format(params)
+    return res.valid, res.msg
+
+def edit_file(params):
+    if procede("Would you like to edit your params?"):
+        MARKER = '# Everything below is ignored'
+        edited = click.edit(pretty_params(params)+'\n'+MARKER)
+        if edited is None:
+            return params
+        try:
+            tag_lines = edited.split('\n')
+            ignore_index = len(tag_lines)
+            for i in range(len(tag_lines)):
+                if tag_lines[i] == MARKER:
+                    ignore_index = i
+                    break
+            tag_lines = tag_lines[:ignore_index]
+            params = [tag.split(': ') for tag in tag_lines]
+        except:
+            print(red("There was an error with your edits."))
+            raise
+    assert params != None
+    return params
+
+def pretty_params(params):
+    return '\n'.join(['%s: %s'%(str(v[0]),str(v[1])) for v in params])
 
 def confirm_params(params, override, validate_fn):
     validated = False
@@ -58,15 +86,12 @@ def confirm_params(params, override, validate_fn):
                 if not validated:
                     print("Your parameters are invalid. Details: %s"%details)
                     if procede("Would you like to edit your params?"):
-                        #edit file
-                        pass
+                        params = edit_file(params)
             print(green("Validation PASSED"))
-        pretty = '\n'.join(['%s: %s'%(str(v[0]),str(v[1])) for v in params])
-        print('\n%s\n'%pretty)
+        print('\n%s\n'%pretty_params(params))
         confirmed = procede("Does this look right to you?")
         if not confirmed:
-            pass
-            #edit file
+            params = edit_file(params)
 
 def procede(msg):
     reply = input("%s (%s/%s/%s) " % (msg,green('y'),red('n'),blue('q'))).lower()
