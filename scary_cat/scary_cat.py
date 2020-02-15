@@ -13,14 +13,13 @@ Options:
     --many       Add multiple host IDs using an editor
     --version       Show version and exit.
 """
-
+from __future__ import absolute_import
 import sys
 import docopt
 from prettycli import red, green, blue
 import click
 
-from validator import validate_format
-from search import get_host
+from .search import get_host, Provision
 
 def main():
     args = docopt.docopt(__doc__, version="1.0")
@@ -37,7 +36,7 @@ def main():
 def replace_cmd(args):
     # Find Host Information in datadog
     params = get_host(args['<host-id>'])
-    confirm_params(params, args['--override'], dummy_validate)
+    confirm_params(params, args['--override'])
     print('execute replacement')
 
 def remove_cmd(args):
@@ -46,16 +45,10 @@ def remove_cmd(args):
 def config_cmd(args):
     pass
 
-""" Must return boolean, str """
-def dummy_validate(params):
-    print('validating.....')
-    res = validate_format(params)
-    return res.valid, res.msg
-
 def edit_file(params):
     if procede("Would you like to edit your params?"):
         MARKER = '# Everything below is ignored'
-        edited = click.edit(pretty_params(params)+'\n'+MARKER)
+        edited = click.edit(str(params)+'\n'+MARKER)
         if edited is None:
             return params
         try:
@@ -67,31 +60,32 @@ def edit_file(params):
                     break
             tag_lines = tag_lines[:ignore_index]
             params = [tag.split(': ') for tag in tag_lines]
+            box = Provision(params)
         except:
             print(red("There was an error with your edits."))
             raise
-    assert params != None
+        assert box != None
+        return box
     return params
+    
 
-def pretty_params(params):
-    return '\n'.join(['%s: %s'%(str(v[0]),str(v[1])) for v in params])
-
-def confirm_params(params, override, validate_fn):
+def confirm_params(params, override):
     validated = False
     confirmed = False
     while not confirmed:
         if not override:
             while not validated:
-                validated, details = validate_fn(params)
+                validated, details = params.validate()
                 if not validated:
                     print("Your parameters are invalid. Details: %s"%details)
-                    if procede("Would you like to edit your params?"):
-                        params = edit_file(params)
+                    params = edit_file(params)
+                    validated = False
             print(green("Validation PASSED"))
-        print('\n%s\n'%pretty_params(params))
+        print(params)
         confirmed = procede("Does this look right to you?")
         if not confirmed:
             params = edit_file(params)
+            validated = False
 
 def procede(msg):
     reply = input("%s (%s/%s/%s) " % (msg,green('y'),red('n'),blue('q'))).lower()
@@ -103,6 +97,7 @@ def procede(msg):
 
 if __name__ == '__main__':
     try:
+        print(__name__)
         main()
     except KeyboardInterrupt:
         pass 
