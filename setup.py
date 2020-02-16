@@ -10,6 +10,6 @@ setup(
     install_requires=requirements,
     packages=find_packages(),
     entry_points = {
-        'console_scripts': ['scary-cat=scary_cat.scary_cat:main']
+        'console_scripts': ['scary-cat=scary_cat:main']
     }
 )

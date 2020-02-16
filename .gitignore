@@ -1,3 +1,4 @@
 *.pyc
 env/*
 scary_cat.egg-info/*
+*.swp
