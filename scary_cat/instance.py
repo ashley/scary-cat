@@ -6,7 +6,8 @@ from .validator import (
     validate_zk_cluster,
     validate_kafka_cluster,
     validate_kafka_topic,
-    validate_kafka_partitions
+    validate_kafka_partitions,
+    validate_hosts
 )
 
 class Provision:
@@ -85,6 +86,7 @@ class RemoveHosts:
     def validate(self):
         try:
             validate_required_fields(self.as_tuples())
+            validate_hosts(self.nodes)
         except InvalidResponse as e:
             return False, str(e)
         return True, None
