@@ -19,8 +19,10 @@ import sys
 import docopt
 from prettycli import red, green, blue
 import click
+from subprocess import Popen, check_output
+import os
 
-from .search import get_host
+from .search import get_host, get_dependencies
 from .instance import Provision, RemoveHosts
 
 def main():
@@ -30,7 +32,7 @@ def main():
     elif args['remove']:
         return remove_cmd(args)
     elif args['config']:
-        print()
+        return config_cmd(args)
     else:
         print("Invalid command")
         return
@@ -39,20 +41,33 @@ def remove_cmd(args):
     params = RemoveHosts()
     if args['<host-id>']:
         params.nodes = args['<host-id>']
-    edit_file(params, ask_edit=False)
-    confirm_params(params, args['--override'])
-    print('remove nodes')
+    params = edit_file(params, RemoveHosts,  ask_edit=False)
+    params = confirm_params(params, RemoveHosts, args['--override'])
+    print(blue('removing nodes...'))
+    jenkins_build('remove-node-prod', params)    
 
 def replace_cmd(args):
     # Find Host Information in datadog
     params = get_host(args['<host-id>'])
-    confirm_params(params, args['--override'])
-    print('execute replacement')
+    params = confirm_params(params,Provision, args['--override'])
+    print(blue('execute replacement...'))
+    jenkins_build('provision-consumer-prod', params)    
 
 def config_cmd(args):
-    pass
+    options = get_dependencies()
+    for k, v in options.items():
+        print("%s: %s" % (k,v))
+    if os.getenv("JENKINS_URL"):
+        print("JENKINS_URL: %s" % os.getenv("JENKINS_URL"))
+    else:
+        print(red("Failed to get JENKINS_URL. Be sure to have it set as an environment variable"))
 
-def edit_file(params, ask_edit=True):
+def jenkins_build(job, params):
+    args = ['jinkies', 'build', job, '--no-log']
+    args += ['{}={}'.format(tag[0], tag[1]) for tag in params.as_tuples()]
+    return check_output(args)
+
+def edit_file(params, cmd_type, ask_edit=True):
     if ask_edit:
         if not procede("Would you like to edit your params?"):
             return params
@@ -69,7 +84,7 @@ def edit_file(params, ask_edit=True):
                 break
         tag_lines = tag_lines[:ignore_index]
         params = [tag.split(': ') for tag in tag_lines]
-        box = Provision(params)
+        box = cmd_type(params)
     except:
         print(red("There was an error with your edits."))
         raise
@@ -77,7 +92,7 @@ def edit_file(params, ask_edit=True):
     return box
     
 
-def confirm_params(params, override):
+def confirm_params(params, cmd_type, override):
     validated = False
     confirmed = False
     while not confirmed:
@@ -85,15 +100,16 @@ def confirm_params(params, override):
             while not validated:
                 validated, details = params.validate()
                 if not validated:
-                    print("Your parameters are invalid. Details: %s"%details)
-                    params = edit_file(params)
+                    print(red("Your parameters are invalid. Details: %s"%details))
+                    params = edit_file(params, cmd_type)
                     validated = False
             print(green("Validation PASSED"))
         print(params)
         confirmed = procede("Does this look right to you?")
         if not confirmed:
-            params = edit_file(params)
+            params = edit_file(params, cmd_type)
             validated = False
+    return params
 
 def procede(msg):
     reply = input("%s (%s/%s/%s) " % (msg,green('y'),red('n'),blue('q'))).lower()

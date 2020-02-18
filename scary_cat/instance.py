@@ -64,7 +64,7 @@ class RemoveHosts:
     def __init__(self, params=None):
         if params == None:
             return
-        param_map = {'NODES': params.nodes, 'SHELL_USERNAME': params.shell_username, 'WHY': param.why}
+        param_map = {'NODES': self.nodes, 'SHELL_USERNAME': self.shell_username, 'WHY': self.why}
         assert len(params) == len(param_map)
         for line in params:
             assert len(line) ==2
