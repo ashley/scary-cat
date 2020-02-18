@@ -1,3 +1,5 @@
+<img width="100" alt="Screen Shot 2019-10-31 at 6 09 39 PM" src="https://user-images.githubusercontent.com/2825071/74695440-00f84f80-51c2-11ea-9dd3-1878f3ded3d9.png">
+
 ## Scary Cat
 Replace your instances via host information from Datadog.
 
