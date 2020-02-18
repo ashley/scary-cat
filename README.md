@@ -1,5 +1,5 @@
 ## Scary Cat
-Replace your instances via host information on Datadog.
+Replace your instances via host information from Datadog.
 
 ## Installation
 * Be sure you have [python3](https://www.python.org/downloads/) installed. Check by using `python --version`.
