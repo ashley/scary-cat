@@ -5,9 +5,9 @@ Replace your instances via host information on Datadog.
 * Be sure you have [python3](https://www.python.org/downloads/) installed. Check by using `python --version`.
 * Go to your Jenkins Homepage -> Click on your name on the top right -> Configure -> Generate a API token.
 * Retreive a API key and app key from Datadog. This is under Integrations -> APIs
-* Either export the token and keys or add them to your `~/.bashrc`. Be sure to `source ~/.bashrc` after adding them.
+* Either export the token and keys or add them to your `~/.bashrc`. Be sure to `source ~/.bashrc` after adding them. You may need to adjust your `JENKINS_URL` to the domain used for your Jenkins server.
 ```
-export JENKINS_URL="https://<yourname>:<yourtoken>@roy.datad0g.com"
+export JENKINS_URL="https://<yourname>:<yourtoken>@jenkins/"
 export DATADOG_API_KEY="<apikey>"
 export DATADOG_APP_KEY="<apikey>"
 ```
