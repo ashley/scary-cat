@@ -4,6 +4,7 @@
 """scary-cat is a command line tool for doing scary things.
 Usage:
     scary-cat replace <host-id> [--override]
+    scary-cat replace-many <input-file> <instance-type>
     scary-cat remove <host-id> [--override]
     scary-cat remove [--many] [--override]
     scary-cat config
@@ -29,6 +30,8 @@ def main():
     args = docopt.docopt(__doc__, version="1.0")
     if args['replace']:
         return replace_cmd(args) 
+    elif args['replace-many']:
+        return replace_many_cmd(args) 
     elif args['remove']:
         return remove_cmd(args)
     elif args['config']:
@@ -51,7 +54,19 @@ def replace_cmd(args):
     params = get_host(args['<host-id>'])
     params = confirm_params(params,Provision, args['--override'])
     print(blue('execute replacement...'))
-    jenkins_build('provision-consumer-prod', params)    
+    jenkins_build('provision-consumer-prod', params) 
+
+def replace_many_cmd(args):
+    # Find Host Information in datadog
+    f = open(args['<input-file>'], "r")
+    for host in f:
+        params = get_host(host)
+        if args['<instance-type>']:
+            params.instance_size = args['<instance-type>']
+        params.additional_tags = 'newbatch:true'
+        params = confirm_params(params,Provision, False)
+        print(blue('execute replacement...'))
+        jenkins_build('provision-consumer-prod', params)
 
 def config_cmd(args):
     options = get_dependencies()
