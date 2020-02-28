@@ -28,7 +28,8 @@ def get_tag(host, sub_label, main_label):
         tags = host[main_label]
         for tag in tags:
             context = tag.split(':')
-            assert len(context) == 2
+            if len(context) != 2:
+                continue
             if context[0] == sub_label:
                 return context[1]
     except:
@@ -41,7 +42,8 @@ def get_partitions(host, sub_label, main_label):
         result = []
         for tag in tags:
             context = tag.split(':')
-            assert len(context) == 2
+            if len(context) != 2:
+                continue
             if context[0] == sub_label:
                 result.append(context[1])
         arr = [int(x) for x in result]
