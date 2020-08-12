@@ -20,7 +20,7 @@ git clone https://github.com/ashley/scary-cat.git
 ```
 * Start installing scary-cat as a CLI tool
 ```
-cd scary-cat && pip3 isntall .
+cd scary-cat && pip3 install .
 ```
 
 ## Usage 🥢
